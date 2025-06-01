@@ -1,0 +1,56 @@
+{
+  "devDependencies": {
+    "@biomejs/biome": "2.0.0-beta.4",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.18",
+    "@types/nodemailer": "^6.4.17",
+    "@types/uuid": "^10.0.0",
+    "dotenv": "^16.5.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.4",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0"
+  },
+  "name": "genesis-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run build && node dist/index.js",
+    "build": "nest build",
+    "lint": "npx biome format ./ --write",
+    "start:prod": "npm run migration:run && node dist/index.js",
+    "test": "./node_modules/.bin/jest",
+    "test:watch": "./node_modules/.bin/jest --watch",
+    "test:cov": "./node_modules/.bin/jest --coverage",
+    "typeorm": "./node_modules/.bin/ts-node -r tsconfig-paths/register -r dotenv/config ./node_modules/typeorm/cli.js",
+    "migration:create": "npm run typeorm -- migration:create src/shared/database/migrations/InitSchema",
+    "migration:generate": "npm run typeorm -- migration:generate src/shared/database/migrations/InitSchema",
+    "migration:run": "node ./node_modules/typeorm/cli.js --dataSource dist/src/shared/database/postgres-connection.js migration:run",
+    "migration:create:prod": "node ./node_modules/typeorm/cli.js --dataSource dist/src/shared/database/postgres-connection.js migration:create dist/src/shared/database/migrations/InitSchema",
+    "migration:generate:prod": "node ./node_modules/typeorm/cli.js --dataSource dist/src/shared/database/postgres-connection.js migration:generate dist/src/shared/database/migrations/InitSchema"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GenesisEducationKyiv/software-engineering-school-5-0-hhuziuk.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GenesisEducationKyiv/software-engineering-school-5-0-hhuziuk.git/issues"
+  },
+  "homepage": "https://github.com/GenesisEducationKyiv/software-engineering-school-5-0-hhuziuk.git#readme",
+  "dependencies": {
+    "@nestjs-modules/mailer": "^2.0.2",
+    "@nestjs/axios": "^4.0.0",
+    "@nestjs/core": "^11.1.1",
+    "@nestjs/platform-fastify": "^11.1.1",
+    "@nestjs/schedule": "^6.0.0",
+    "@nestjs/testing": "^11.1.1",
+    "@nestjs/typeorm": "^11.0.0",
+    "class-validator": "^0.14.2",
+    "nodemailer": "^7.0.3",
+    "pg": "^8.16.0",
+    "typeorm": "^0.3.24"
+  }
+}

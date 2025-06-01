@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Subscribe to Weather Updates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 320px;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-top: 0.75rem;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.25rem;
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+        button {
+            margin-top: 1.25rem;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #93c5fd;
+            cursor: default;
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            text-align: center;
+        }
+        .message.success { background: #dcfce7; color: #166534; }
+        .message.error   { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Weather Subscription</h1>
+    <form id="subscribe-form">
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" required />
+
+        <label for="city">City</label>
+        <input type="text" id="city" name="city" required />
+
+        <label for="frequency">Update frequency</label>
+        <select id="frequency" name="frequency" required>
+            <option value="">-- select --</option>
+            <option value="hourly">Hourly</option>
+            <option value="daily">Daily</option>
+        </select>
+
+        <button type="submit" id="submit-btn">Subscribe</button>
+    </form>
+    <div id="message" class="message" style="display:none;"></div>
+</div>
+
+<script>
+    const form = document.getElementById('subscribe-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const msgDiv = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        msgDiv.style.display = 'none';
+        msgDiv.textContent = '';
+        msgDiv.className = 'message';
+
+        const data = new FormData(form);
+
+        try {
+            const API_BASE = 'http://localhost:3000';
+            const resp = await fetch(`${API_BASE}/api/subscribe`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email:     form.email.value,
+                    city:      form.city.value,
+                    frequency: form.frequency.value,
+                }),
+            });
+            if (!resp.ok) {
+                const errorText = await resp.text();
+                throw new Error(`${resp.status} ${resp.statusText}: ${errorText}`);
+            }
+            const result = await resp.json();
+            msgDiv.textContent = result.message || 'Subscribed successfully!';
+            msgDiv.classList.add('success');
+        } catch (err) {
+            msgDiv.textContent = err.message || 'Subscription failed';
+            msgDiv.classList.add('error');
+        } finally {
+            msgDiv.style.display = 'block';
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
