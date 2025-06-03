@@ -24,7 +24,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       entity.id,
       entity.email,
       entity.city,
-      entity.frequency as UpdateFrequency,
+      entity.frequency,
       entity.confirmed,
       entity.token,
       entity.createdAt,

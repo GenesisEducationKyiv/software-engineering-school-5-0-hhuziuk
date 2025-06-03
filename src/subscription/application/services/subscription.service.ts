@@ -13,6 +13,7 @@ import { Cron } from "@nestjs/schedule";
 import { UpdateFrequency } from "src/shared/enums/frequency.enum";
 import { config } from "src/shared/configs/config";
 import { WeatherService } from "src/weather/application/services/weather.service";
+import { EmailContext } from "@/subscription/application/services/types";
 
 @Injectable()
 export class SubscriptionService {
@@ -78,7 +79,7 @@ export class SubscriptionService {
 
       const greeting = frequency === UpdateFrequency.HOURLY ? "Hour" : "Morning";
 
-      const context: any = {
+      const context: EmailContext = {
         greeting,
         city: sub.city,
         unsubscribeUrl,
