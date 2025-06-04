@@ -56,7 +56,7 @@ export default defineConfig([
 
       "@typescript-eslint/no-explicit-any": "warn",                // warn for any any :)
       "@typescript-eslint/no-non-null-assertion": "warn",
-      "@typescript-eslint/no-inferrable-types": "error",           // no
+      "@typescript-eslint/no-inferrable-types": "error",
       "@typescript-eslint/no-unnecessary-type-assertion": "error",
       "@typescript-eslint/prefer-as-const": "error",
       "@typescript-eslint/default-param-last": "error",
@@ -67,7 +67,6 @@ export default defineConfig([
     },
   },
 
-  // 4) only for test files no-explicit-any
   {
     files: ["**/*.spec.ts", "**/*.spec.tsx"],
     rules: {
