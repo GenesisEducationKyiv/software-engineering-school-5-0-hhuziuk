@@ -3,12 +3,17 @@ module.exports = {
   testEnvironment: "node",
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^src/(.*)$": "<rootDir>/src/$1",
   },
-  globals: {
-    "ts-jest": {
-      tsconfig: "tsconfig.json",
-    },
+  transform: {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.json",
+      },
+    ],
   },
+
   testRegex: "\\.spec\\.ts$",
   collectCoverage: true,
   coverageDirectory: "coverage",
