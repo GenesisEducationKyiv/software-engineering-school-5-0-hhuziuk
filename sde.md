@@ -327,6 +327,12 @@ getCurrent(dto: GetWeatherDto): Promise<Weather>
 
 ---
 
+### 5. Архітектура
+
+![img.png](img.png)
+
+---
+
 
 ## Рев’ю
 - [x] Георгій
