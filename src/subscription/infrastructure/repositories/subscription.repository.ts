@@ -63,21 +63,17 @@ export class SubscriptionRepository implements ISubscriptionRepository {
 
   async confirmSubscription(token: string): Promise<void> {
     const entity = await this.ormRepo.findOne({ where: { token } });
-    if (!entity) {
-      throw new NotFoundException("Token not found");
-    }
-    if (entity.confirmed) {
-      throw new BadRequestException("Subscription already confirmed");
-    }
+
+    if (!entity) throw new NotFoundException("Token not found");
+    if (entity.confirmed) throw new BadRequestException("Subscription already confirmed");
+
     entity.confirmed = true;
     await this.ormRepo.save(entity);
   }
 
   async unsubscribe(token: string): Promise<void> {
     const entity = await this.ormRepo.findOne({ where: { token } });
-    if (!entity) {
-      throw new NotFoundException("Token not found");
-    }
+    if (!entity) throw new NotFoundException("Token not found");
     await this.ormRepo.remove(entity);
   }
 
