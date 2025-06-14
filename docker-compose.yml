@@ -1,0 +1,41 @@
+services:
+  weather-test:
+    container_name: genesis-test
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    depends_on:
+      - postgres
+    restart: always
+    environment:
+      API_KEY: "${API_KEY}"
+      APP_BASE_URL: "${APP_BASE_URL}"
+      SMTP_HOST: "${SMTP_HOST}"
+      SMTP_PORT: "${SMTP_PORT}"
+      SMTP_SECURE: "${SMTP_SECURE}"
+      SMTP_USER: "${SMTP_USER}"
+      SMTP_PASS: "${SMTP_PASS}"
+      SMTP_FROM: "${SMTP_FROM}"
+      DB_HOST: postgres
+      DB_PORT: "${DB_PORT}"
+      DB_USER: "${DB_USER}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_DATABASE: "${DB_DATABASE}"
+    ports:
+      - "3000:3000"
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_DATABASE}"
+
+volumes:
+  postgres_data:
