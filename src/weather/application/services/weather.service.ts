@@ -1,35 +1,35 @@
-import { Injectable, BadRequestException, forwardRef, Inject } from "@nestjs/common";
-import { HttpService } from "@nestjs/axios";
-import { firstValueFrom } from "rxjs";
+import { Injectable, Inject, BadRequestException } from "@nestjs/common";
+import {
+  IWeatherRepository,
+  WEATHER_REPOSITORY,
+} from "src/weather/infrastructure/repositories/weather.repository.interface";
+import {
+  IWeatherApiClient,
+  WEATHER_API_CLIENT,
+} from "src/weather/application/clients/weather-api-client.interface";
 import { Weather } from "src/weather/domain/entities/weather.entity";
-import { GetWeatherDto } from "src/subscription/application/dto/get-weather.dto";
-import { config } from "src/shared/configs/config";
-import { WeatherRepository } from "src/weather/infrastructure/repositories/weather.repository";
+import { WeatherCacheService } from "./weather-cache.service";
 
 @Injectable()
 export class WeatherService {
   constructor(
-    private readonly http: HttpService,
-    private readonly repo: WeatherRepository,
+    @Inject(WEATHER_REPOSITORY)
+    private readonly repo: IWeatherRepository,
+    @Inject(WEATHER_API_CLIENT)
+    private readonly apiClient: IWeatherApiClient,
+    private readonly cacheService: WeatherCacheService,
   ) {}
 
-  async getCurrent(dto: GetWeatherDto): Promise<Weather> {
-    if (!dto.city) throw new BadRequestException("City required");
-    const cached = await this.repo.findByCity(dto.city);
-    if (cached && Date.now() - cached.fetchedAt.getTime() < 3600_000) {
+  async getCurrent(city: string): Promise<Weather> {
+    if (!city || city.trim() === "") {
+      throw new BadRequestException("City cannot be empty");
+    }
+    const cached = await this.cacheService.getCached(city);
+    if (cached) {
       return cached;
     }
-    const url = `https://api.weatherapi.com/v1/current.json?key=${config.apiKey}&q=${dto.city}`;
-    const response = await firstValueFrom(this.http.get(url));
-    const data = response.data.current;
-    const weather = new Weather(
-      dto.city,
-      data.temp_c,
-      data.humidity,
-      data.condition.text,
-      new Date(),
-    );
-    await this.repo.save(weather);
-    return weather;
+    const fresh = await this.apiClient.fetchCurrent(city);
+    await this.cacheService.updateCache(fresh);
+    return fresh;
   }
 }

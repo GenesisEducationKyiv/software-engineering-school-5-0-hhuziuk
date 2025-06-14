@@ -21,7 +21,8 @@
   "scripts": {
     "start": "npm run build && node dist/index.js",
     "build": "nest build",
-    "lint": "npx eslint . --ext .ts,.js --fix",
+    "lint": "npx eslint . --ext .ts,.js",
+    "lint:fix": "npx eslint . --ext .ts,.js --fix",
     "start:prod": "npm run migration:run && node dist/index.js",
     "test": "./node_modules/.bin/jest",
     "test:watch": "./node_modules/.bin/jest --watch",
