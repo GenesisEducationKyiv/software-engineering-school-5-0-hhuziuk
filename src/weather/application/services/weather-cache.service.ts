@@ -1,8 +1,8 @@
-import {Inject, Injectable} from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { Weather } from "src/weather/domain/entities/weather.entity";
 import {
   IWeatherRepository,
-  WEATHER_REPOSITORY
+  WEATHER_REPOSITORY,
 } from "src/weather/infrastructure/repositories/weather.repository.interface";
 
 @Injectable()
@@ -10,8 +10,8 @@ export class WeatherCacheService {
   private readonly ttl = 3600_000; // 1h
 
   constructor(
-      @Inject(WEATHER_REPOSITORY)
-      private readonly repo: IWeatherRepository
+    @Inject(WEATHER_REPOSITORY)
+    private readonly repo: IWeatherRepository,
   ) {}
 
   async getCached(city: string): Promise<Weather | null> {

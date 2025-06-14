@@ -2,11 +2,14 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { WeatherService } from "@/weather/application/services/weather.service";
 import { BadRequestException } from "@nestjs/common";
 import { Weather } from "@/weather/domain/entities/weather.entity";
-import {WeatherCacheService} from "@/weather/application/services/weather-cache.service";
-import {IWeatherApiClient, WEATHER_API_CLIENT} from "@/weather/application/clients/weather-api-client.interface";
+import { WeatherCacheService } from "@/weather/application/services/weather-cache.service";
+import {
+  IWeatherApiClient,
+  WEATHER_API_CLIENT,
+} from "@/weather/application/clients/weather-api-client.interface";
 import {
   IWeatherRepository,
-  WEATHER_REPOSITORY
+  WEATHER_REPOSITORY,
 } from "@/weather/infrastructure/repositories/weather.repository.interface";
 
 describe("WeatherService", () => {
@@ -14,7 +17,6 @@ describe("WeatherService", () => {
   let apiClientMock: IWeatherApiClient;
   let cacheServiceMock: WeatherCacheService;
   let repoMock: IWeatherRepository;
-
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

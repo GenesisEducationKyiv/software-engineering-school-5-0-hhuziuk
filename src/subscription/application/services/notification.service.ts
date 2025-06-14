@@ -2,11 +2,11 @@ import { UpdateFrequency } from "@/shared/enums/frequency.enum";
 import { WeatherService } from "@/weather/application/services/weather.service";
 import {
   ISubscriptionRepository,
-  SUBSCRIPTION_REPOSITORY
+  SUBSCRIPTION_REPOSITORY,
 } from "@/subscription/infrastructure/repositories/subscription.repository.interface";
 import { MailerService } from "@nestjs-modules/mailer";
 import { NotificationStrategy } from "@/subscription/application/services/interfaces/notification-strategy.interface";
-import {Inject} from "@nestjs/common";
+import { Inject } from "@nestjs/common";
 
 export class NotificationService {
   private strategies: Map<UpdateFrequency, NotificationStrategy>;

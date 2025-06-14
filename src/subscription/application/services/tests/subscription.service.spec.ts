@@ -10,9 +10,9 @@ import { CreateSubscriptionDto } from "@/weather/application/dto/create-subscrip
 import { ConfirmSubscriptionDto } from "@/weather/application/dto/confirm-subscription.dto";
 import { UnsubscribeDto } from "@/weather/application/dto/unsubscribe.dto";
 import { ConflictException, NotFoundException } from "@nestjs/common";
-import {TokenService} from "@/subscription/application/services/token.service";
-import {SubscriptionManager} from "@/subscription/application/services/subscription-manager.service";
-import {NotificationService} from "@/subscription/application/services/notification.service";
+import { TokenService } from "@/subscription/application/services/token.service";
+import { SubscriptionManager } from "@/subscription/application/services/subscription-manager.service";
+import { NotificationService } from "@/subscription/application/services/notification.service";
 
 describe("SubscriptionService", () => {
   let service: SubscriptionService;
@@ -23,12 +23,12 @@ describe("SubscriptionService", () => {
   let notificationServiceMock: NotificationService;
 
   const mockSubscriptionData = {
-    id: 'test-id',
+    id: "test-id",
     email: "a@b.com",
     city: "City",
     frequency: UpdateFrequency.DAILY,
     confirmed: false,
-    token: 'test-token',
+    token: "test-token",
     createdAt: new Date(),
   };
 
@@ -48,9 +48,9 @@ describe("SubscriptionService", () => {
         {
           provide: TokenService,
           useValue: {
-            generate: jest.fn().mockReturnValue('mock-generated-token'),
-            getConfirmUrl: jest.fn().mockReturnValue('mock-confirm-url'),
-            getUnsubscribeUrl: jest.fn().mockReturnValue('mock-unsubscribe-url'),
+            generate: jest.fn().mockReturnValue("mock-generated-token"),
+            getConfirmUrl: jest.fn().mockReturnValue("mock-confirm-url"),
+            getUnsubscribeUrl: jest.fn().mockReturnValue("mock-unsubscribe-url"),
           },
         },
         {
@@ -86,9 +86,9 @@ describe("SubscriptionService", () => {
       city: "City",
       frequency: UpdateFrequency.DAILY,
     };
-    const generatedToken = 'mock-generated-token';
-    const confirmUrl = 'mock-confirm-url';
-    const unsubscribeUrl = 'mock-unsubscribe-url';
+    const generatedToken = "mock-generated-token";
+    const confirmUrl = "mock-confirm-url";
+    const unsubscribeUrl = "mock-unsubscribe-url";
 
     const successfulSubscription: {
       id: string;
@@ -97,7 +97,7 @@ describe("SubscriptionService", () => {
       frequency: UpdateFrequency;
       confirmed: boolean;
       token: string;
-      createdAt: Date
+      createdAt: Date;
     } = {
       ...mockSubscriptionData,
       email: dto.email,
@@ -105,7 +105,6 @@ describe("SubscriptionService", () => {
       frequency: dto.frequency,
       token: generatedToken,
     };
-
 
     it("should call tokenService, subscriptionManager, and mailerService on successful subscription", async () => {
       (subscriptionManagerMock.subscribe as jest.Mock).mockResolvedValue(successfulSubscription);
@@ -115,21 +114,23 @@ describe("SubscriptionService", () => {
       expect(tokenServiceMock.generate).toHaveBeenCalledTimes(1);
       expect(subscriptionManagerMock.subscribe).toHaveBeenCalledWith(dto, generatedToken);
       expect(mailerMock.sendMail).toHaveBeenCalledWith(
-          expect.objectContaining({
-            to: dto.email,
-            subject: "Welcome! Confirm your weather subscription",
-            template: "confirm-subscription",
-            context: {
-              city: successfulSubscription.city,
-              confirmUrl: confirmUrl,
-              unsubscribeUrl: unsubscribeUrl,
-            },
-          }),
+        expect.objectContaining({
+          to: dto.email,
+          subject: "Welcome! Confirm your weather subscription",
+          template: "confirm-subscription",
+          context: {
+            city: successfulSubscription.city,
+            confirmUrl: confirmUrl,
+            unsubscribeUrl: unsubscribeUrl,
+          },
+        }),
       );
     });
 
     it("should propagate ConflictException from subscriptionManager and not send email", async () => {
-      (subscriptionManagerMock.subscribe as jest.Mock).mockRejectedValueOnce(new ConflictException("Email already subscribed"));
+      (subscriptionManagerMock.subscribe as jest.Mock).mockRejectedValueOnce(
+        new ConflictException("Email already subscribed"),
+      );
 
       await expect(service.subscribe(dto)).rejects.toBeInstanceOf(ConflictException);
 
@@ -147,14 +148,20 @@ describe("SubscriptionService", () => {
     });
 
     it("should not call confirmSubscription if already confirmed", async () => {
-      (repoMock.findByToken as jest.Mock).mockResolvedValue({ ...mockSubscriptionData, confirmed: true });
+      (repoMock.findByToken as jest.Mock).mockResolvedValue({
+        ...mockSubscriptionData,
+        confirmed: true,
+      });
       const dto: ConfirmSubscriptionDto = { token: "token" };
       await service.confirm(dto);
       expect(repoMock.confirmSubscription).not.toHaveBeenCalled();
     });
 
     it("should confirm subscription if not confirmed", async () => {
-      (repoMock.findByToken as jest.Mock).mockResolvedValue({ ...mockSubscriptionData, confirmed: false });
+      (repoMock.findByToken as jest.Mock).mockResolvedValue({
+        ...mockSubscriptionData,
+        confirmed: false,
+      });
       const dto: ConfirmSubscriptionDto = { token: "token" };
       await service.confirm(dto);
       expect(repoMock.confirmSubscription).toHaveBeenCalledWith(dto.token);
