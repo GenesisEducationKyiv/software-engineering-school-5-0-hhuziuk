@@ -1,8 +1,11 @@
 import { Subscription } from "src/subscription/domain/entities/subscription.entity";
 import { CreateSubscriptionDto } from "src/weather/application/dto/create-subscription.dto";
-import { ConflictException } from "@nestjs/common";
+import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
-import { ISubscriptionRepository } from "@/subscription/infrastructure/repositories/subscription.repository.interface";
+import {
+  ISubscriptionRepository,
+  SUBSCRIPTION_REPOSITORY,
+} from "@/subscription/infrastructure/repositories/subscription.repository.interface";
 
 export class SubscriptionFactory {
   create(dto: CreateSubscriptionDto, token: string): Subscription {
@@ -10,8 +13,10 @@ export class SubscriptionFactory {
   }
 }
 
+@Injectable()
 export class SubscriptionManager {
   constructor(
+    @Inject(SUBSCRIPTION_REPOSITORY)
     private readonly repo: ISubscriptionRepository,
     private readonly factory: SubscriptionFactory,
   ) {}

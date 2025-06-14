@@ -22,7 +22,7 @@ import { WeatherService } from "@/weather/application/services/weather.service";
 
 @Module({
   imports: [TypeOrmModule.forFeature([SubscriptionOrmEntity]), MailerModule, WeatherModule],
-  controllers: [SubscriptionController], // Added controller
+  controllers: [SubscriptionController],
   providers: [
     {
       provide: SUBSCRIPTION_REPOSITORY,
