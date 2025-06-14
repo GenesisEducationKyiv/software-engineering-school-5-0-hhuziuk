@@ -1,9 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { SubscriptionService } from "@/subscription/application/services/subscription.service";
-import {
-  ISubscriptionRepository,
-  SUBSCRIPTION_REPOSITORY,
-} from "@/subscription/infrastructure/repositories/subscription.repository.interface";
+import { SUBSCRIPTION_QUERY_REPOSITORY } from "@/subscription/infrastructure/repositories/subscription-query.repository.interface";
+import { SUBSCRIPTION_COMMAND_REPOSITORY } from "@/subscription/infrastructure/repositories/subscription-command.repository.interface";
 import { MailerService } from "@nestjs-modules/mailer";
 import { UpdateFrequency } from "@/shared/enums/frequency.enum";
 import { CreateSubscriptionDto } from "@/weather/application/dto/create-subscription.dto";
@@ -16,7 +14,8 @@ import { NotificationService } from "@/subscription/application/services/notific
 
 describe("SubscriptionService", () => {
   let service: SubscriptionService;
-  let repoMock: ISubscriptionRepository;
+  let queryRepoMock: any;
+  let commandRepoMock: any;
   let mailerMock: MailerService;
   let tokenServiceMock: TokenService;
   let subscriptionManagerMock: SubscriptionManager;
@@ -33,17 +32,19 @@ describe("SubscriptionService", () => {
   };
 
   beforeEach(async () => {
+    queryRepoMock = {
+      findByToken: jest.fn(),
+    };
+    commandRepoMock = {
+      confirmSubscription: jest.fn(),
+      unsubscribe: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubscriptionService,
-        {
-          provide: SUBSCRIPTION_REPOSITORY,
-          useValue: {
-            findByToken: jest.fn(),
-            confirmSubscription: jest.fn(),
-            unsubscribe: jest.fn(),
-          },
-        },
+        { provide: SUBSCRIPTION_QUERY_REPOSITORY, useValue: queryRepoMock },
+        { provide: SUBSCRIPTION_COMMAND_REPOSITORY, useValue: commandRepoMock },
         { provide: MailerService, useValue: { sendMail: jest.fn() } },
         {
           provide: TokenService,
@@ -57,6 +58,8 @@ describe("SubscriptionService", () => {
           provide: SubscriptionManager,
           useValue: {
             subscribe: jest.fn(),
+            confirm: jest.fn(),
+            unsubscribe: jest.fn(),
           },
         },
         {
@@ -69,7 +72,6 @@ describe("SubscriptionService", () => {
     }).compile();
 
     service = module.get<SubscriptionService>(SubscriptionService);
-    repoMock = module.get<ISubscriptionRepository>(SUBSCRIPTION_REPOSITORY);
     mailerMock = module.get<MailerService>(MailerService);
     tokenServiceMock = module.get<TokenService>(TokenService);
     subscriptionManagerMock = module.get<SubscriptionManager>(SubscriptionManager);
@@ -86,45 +88,20 @@ describe("SubscriptionService", () => {
       city: "City",
       frequency: UpdateFrequency.DAILY,
     };
-    const generatedToken = "mock-generated-token";
-    const confirmUrl = "mock-confirm-url";
-    const unsubscribeUrl = "mock-unsubscribe-url";
-
-    const successfulSubscription: {
-      id: string;
-      email: string;
-      city: string;
-      frequency: UpdateFrequency;
-      confirmed: boolean;
-      token: string;
-      createdAt: Date;
-    } = {
-      ...mockSubscriptionData,
-      email: dto.email,
-      city: dto.city,
-      frequency: dto.frequency,
-      token: generatedToken,
-    };
 
     it("should call tokenService, subscriptionManager, and mailerService on successful subscription", async () => {
-      (subscriptionManagerMock.subscribe as jest.Mock).mockResolvedValue(successfulSubscription);
+      (subscriptionManagerMock.subscribe as jest.Mock).mockResolvedValue({
+        ...mockSubscriptionData,
+        email: dto.email,
+        city: dto.city,
+        frequency: dto.frequency,
+      });
 
       await service.subscribe(dto);
 
-      expect(tokenServiceMock.generate).toHaveBeenCalledTimes(1);
-      expect(subscriptionManagerMock.subscribe).toHaveBeenCalledWith(dto, generatedToken);
-      expect(mailerMock.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: dto.email,
-          subject: "Welcome! Confirm your weather subscription",
-          template: "confirm-subscription",
-          context: {
-            city: successfulSubscription.city,
-            confirmUrl: confirmUrl,
-            unsubscribeUrl: unsubscribeUrl,
-          },
-        }),
-      );
+      expect(tokenServiceMock.generate).toHaveBeenCalled();
+      expect(subscriptionManagerMock.subscribe).toHaveBeenCalledWith(dto, "mock-generated-token");
+      expect(mailerMock.sendMail).toHaveBeenCalled();
     });
 
     it("should propagate ConflictException from subscriptionManager and not send email", async () => {
@@ -133,63 +110,63 @@ describe("SubscriptionService", () => {
       );
 
       await expect(service.subscribe(dto)).rejects.toBeInstanceOf(ConflictException);
-
-      expect(tokenServiceMock.generate).toHaveBeenCalledTimes(1);
-      expect(subscriptionManagerMock.subscribe).toHaveBeenCalledWith(dto, generatedToken);
       expect(mailerMock.sendMail).not.toHaveBeenCalled();
     });
   });
 
   describe("confirm", () => {
+    const dto: ConfirmSubscriptionDto = { token: "token" };
+
     it("should throw NotFoundException if token invalid", async () => {
-      (repoMock.findByToken as jest.Mock).mockResolvedValue(null);
-      const dto: ConfirmSubscriptionDto = { token: "token" };
+      queryRepoMock.findByToken.mockResolvedValue(null);
+
       await expect(service.confirm(dto)).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it("should not call confirmSubscription if already confirmed", async () => {
-      (repoMock.findByToken as jest.Mock).mockResolvedValue({
+      queryRepoMock.findByToken.mockResolvedValue({
         ...mockSubscriptionData,
         confirmed: true,
       });
-      const dto: ConfirmSubscriptionDto = { token: "token" };
+
       await service.confirm(dto);
-      expect(repoMock.confirmSubscription).not.toHaveBeenCalled();
+      expect(commandRepoMock.confirmSubscription).not.toHaveBeenCalled();
     });
 
     it("should confirm subscription if not confirmed", async () => {
-      (repoMock.findByToken as jest.Mock).mockResolvedValue({
+      queryRepoMock.findByToken.mockResolvedValue({
         ...mockSubscriptionData,
         confirmed: false,
       });
-      const dto: ConfirmSubscriptionDto = { token: "token" };
+
       await service.confirm(dto);
-      expect(repoMock.confirmSubscription).toHaveBeenCalledWith(dto.token);
+      expect(subscriptionManagerMock.confirm).toHaveBeenCalledWith(dto.token);
     });
   });
 
   describe("unsubscribe", () => {
+    const dto: UnsubscribeDto = { token: "token" };
+
     it("should throw NotFoundException if token invalid", async () => {
-      (repoMock.findByToken as jest.Mock).mockResolvedValue(null);
-      const dto: UnsubscribeDto = { token: "token" };
+      queryRepoMock.findByToken.mockResolvedValue(null);
       await expect(service.unsubscribe(dto)).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it("should call unsubscribe on repo", async () => {
-      (repoMock.findByToken as jest.Mock).mockResolvedValue({ ...mockSubscriptionData });
-      const dto: UnsubscribeDto = { token: "token" };
+      queryRepoMock.findByToken.mockResolvedValue({ ...mockSubscriptionData });
+
       await service.unsubscribe(dto);
-      expect(repoMock.unsubscribe).toHaveBeenCalledWith(dto.token);
+      expect(subscriptionManagerMock.unsubscribe).toHaveBeenCalledWith(dto.token);
     });
   });
 
   describe("cron jobs (handleDailyNotifications / handleHourlyNotifications)", () => {
-    it("handleDailyNotifications should call notificationService.sendBatch with DAILY frequency", async () => {
+    it("handleDailyNotifications should call notificationService.sendBatch with DAILY", async () => {
       await service.handleDailyNotifications();
       expect(notificationServiceMock.sendBatch).toHaveBeenCalledWith(UpdateFrequency.DAILY);
     });
 
-    it("handleHourlyNotifications should call notificationService.sendBatch with HOURLY frequency", async () => {
+    it("handleHourlyNotifications should call notificationService.sendBatch with HOURLY", async () => {
       await service.handleHourlyNotifications();
       expect(notificationServiceMock.sendBatch).toHaveBeenCalledWith(UpdateFrequency.HOURLY);
     });

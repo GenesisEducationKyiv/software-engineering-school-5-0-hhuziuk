@@ -1,9 +1,4 @@
 import { Module } from "@nestjs/common";
-import { SubscriptionRepository } from "src/subscription/infrastructure/repositories/subscription.repository";
-import {
-  ISubscriptionRepository,
-  SUBSCRIPTION_REPOSITORY,
-} from "src/subscription/infrastructure/repositories/subscription.repository.interface";
 import { SubscriptionController } from "src/subscription/presentation/controllers/subscription.controller";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { SubscriptionService } from "src/subscription/application/services/subscription.service";
@@ -19,14 +14,22 @@ import {
   SubscriptionManager,
 } from "@/subscription/application/services/subscription-manager.service";
 import { WeatherService } from "@/weather/application/services/weather.service";
+import { SUBSCRIPTION_QUERY_REPOSITORY } from "@/subscription/infrastructure/repositories/subscription-query.repository.interface";
+import { SubscriptionQueryRepository } from "@/subscription/infrastructure/repositories/subscription-query.repository";
+import { SUBSCRIPTION_COMMAND_REPOSITORY } from "@/subscription/infrastructure/repositories/subscription-command.repository.interface";
+import { SubscriptionCommandRepository } from "@/subscription/infrastructure/repositories/subscription-command.repository";
 
 @Module({
   imports: [TypeOrmModule.forFeature([SubscriptionOrmEntity]), MailerModule, WeatherModule],
   controllers: [SubscriptionController],
   providers: [
     {
-      provide: SUBSCRIPTION_REPOSITORY,
-      useClass: SubscriptionRepository,
+      provide: SUBSCRIPTION_QUERY_REPOSITORY,
+      useClass: SubscriptionQueryRepository,
+    },
+    {
+      provide: SUBSCRIPTION_COMMAND_REPOSITORY,
+      useClass: SubscriptionCommandRepository,
     },
     TokenService,
     DailyNotificationStrategy,
@@ -35,19 +38,19 @@ import { WeatherService } from "@/weather/application/services/weather.service";
       provide: NotificationService,
       useFactory: (
         weatherService: WeatherService,
-        repo: ISubscriptionRepository,
+        queryRepo: SubscriptionQueryRepository,
         mailer: MailerService,
         dailyStrategy: DailyNotificationStrategy,
         hourlyStrategy: HourlyNotificationStrategy,
       ) => {
-        return new NotificationService(weatherService, repo, mailer, [
+        return new NotificationService(weatherService, queryRepo, mailer, [
           dailyStrategy,
           hourlyStrategy,
         ]);
       },
       inject: [
         WeatherService,
-        SUBSCRIPTION_REPOSITORY,
+        SUBSCRIPTION_QUERY_REPOSITORY,
         MailerService,
         DailyNotificationStrategy,
         HourlyNotificationStrategy,

@@ -1,8 +1,4 @@
 import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import {
-  ISubscriptionRepository,
-  SUBSCRIPTION_REPOSITORY,
-} from "src/subscription/infrastructure/repositories/subscription.repository.interface";
 import { CreateSubscriptionDto } from "src/weather/application/dto/create-subscription.dto";
 import { ConfirmSubscriptionDto } from "src/weather/application/dto/confirm-subscription.dto";
 import { UnsubscribeDto } from "src/weather/application/dto/unsubscribe.dto";
@@ -12,12 +8,14 @@ import { UpdateFrequency } from "src/shared/enums/frequency.enum";
 import { TokenService } from "@/subscription/application/services/token.service";
 import { SubscriptionManager } from "@/subscription/application/services/subscription-manager.service";
 import { NotificationService } from "@/subscription/application/services/notification.service";
+import { SUBSCRIPTION_QUERY_REPOSITORY } from "@/subscription/infrastructure/repositories/subscription-query.repository.interface";
+import { SubscriptionQueryRepository } from "@/subscription/infrastructure/repositories/subscription-query.repository";
 
 @Injectable()
 export class SubscriptionService {
   constructor(
-    @Inject(SUBSCRIPTION_REPOSITORY)
-    private readonly repo: ISubscriptionRepository,
+    @Inject(SUBSCRIPTION_QUERY_REPOSITORY)
+    private readonly queryRepo: SubscriptionQueryRepository,
     private readonly mailer: MailerService,
     private readonly tokenService: TokenService,
     private readonly subscriptionManager: SubscriptionManager,
@@ -51,15 +49,17 @@ export class SubscriptionService {
   }
 
   async confirm(dto: ConfirmSubscriptionDto): Promise<void> {
-    const sub = await this.repo.findByToken(dto.token);
+    const sub = await this.queryRepo.findByToken(dto.token);
     if (!sub) throw new NotFoundException("Token not found");
     if (sub.confirmed) return;
-    await this.repo.confirmSubscription(dto.token);
+
+    await this.subscriptionManager.confirm(dto.token);
   }
 
   async unsubscribe(dto: UnsubscribeDto): Promise<void> {
-    const sub = await this.repo.findByToken(dto.token);
+    const sub = await this.queryRepo.findByToken(dto.token);
     if (!sub) throw new NotFoundException("Token not found");
-    await this.repo.unsubscribe(dto.token);
+
+    await this.subscriptionManager.unsubscribe(dto.token);
   }
 }
