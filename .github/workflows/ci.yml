@@ -12,6 +12,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,8 +39,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: lint
+      - name: Lint code
         run: npm run lint
 
-#      - name: Run Tests
-#        run: npm run test
+      - name: Run Unit Tests
+        run: npm run test:unit
+
+      - name: Start Integration Environment (Docker)
+        run: npm run test:integration:up
+
+      - name: Run Integration Tests
+        run: npm run test:integration
+
+      - name: Stop Integration Environment
+        if: always()
+        run: npm run test:integration:down
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E Tests
+        run: npm run test:e2e
