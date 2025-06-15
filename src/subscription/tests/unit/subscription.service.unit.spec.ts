@@ -12,6 +12,21 @@ import { TokenService } from "@/subscription/application/services/token.service"
 import { SubscriptionManager } from "@/subscription/application/services/subscription-manager.service";
 import { NotificationService } from "@/subscription/application/services/notification.service";
 
+jest.mock("@/shared/configs/config", () => ({
+  config: {
+    app: {
+      baseUrl: "https://example.com",
+      port: 3000,
+    },
+    mail: {
+      from: "no-reply@example.com",
+    },
+    weather: {
+      apiKey: "mock-weather-api-key",
+    },
+  },
+}));
+
 describe("SubscriptionService", () => {
   let service: SubscriptionService;
   let queryRepoMock: any;
