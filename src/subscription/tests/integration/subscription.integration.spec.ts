@@ -1,3 +1,14 @@
+beforeAll(() => {
+  process.env.SMTP_HOST = "mock.smtp.host";
+  process.env.SMTP_PORT = "465";
+  process.env.SMTP_SECURE = "true";
+  process.env.SMTP_USER = "mock-user@example.com";
+  process.env.SMTP_PASS = "mock-pass";
+  process.env.SMTP_FROM = "mock-sender@example.com";
+  process.env.APP_BASE_URL = "http://localhost:3000";
+  process.env.API_KEY = "mock-mock-api-key";
+});
+
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule, getDataSourceToken } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
@@ -46,7 +57,7 @@ describe("SubscriptionController Integration", () => {
         TypeOrmModule.forRoot({
           type: "postgres",
           host: process.env.DB_HOST,
-          port: +process.env.DB_PORT!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+          port: +process.env.DB_PORT!,
           username: process.env.DB_USER,
           password: process.env.DB_PASSWORD,
           database: process.env.DB_DATABASE,
@@ -57,11 +68,11 @@ describe("SubscriptionController Integration", () => {
         SubscriptionModule,
       ],
     })
-      .overrideProvider(SubscriptionService)
-      .useValue(mockSubscriptionService)
-      .overrideProvider(NotificationService)
-      .useValue(mockNotificationService)
-      .compile();
+        .overrideProvider(SubscriptionService)
+        .useValue(mockSubscriptionService)
+        .overrideProvider(NotificationService)
+        .useValue(mockNotificationService)
+        .compile();
 
     ds = moduleRef.get<DataSource>(getDataSourceToken());
     repo = ds.getRepository(SubscriptionOrmEntity);

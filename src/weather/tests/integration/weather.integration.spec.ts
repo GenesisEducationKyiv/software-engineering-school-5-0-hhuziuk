@@ -1,3 +1,14 @@
+beforeAll(() => {
+  process.env.SMTP_HOST = "mock.smtp.host";
+  process.env.SMTP_PORT = "465";
+  process.env.SMTP_SECURE = "true";
+  process.env.SMTP_USER = "mock-user@example.com";
+  process.env.SMTP_PASS = "mock-pass";
+  process.env.SMTP_FROM = "mock-sender@example.com";
+  process.env.APP_BASE_URL = "http://localhost:3000";
+  process.env.API_KEY = "mock-mock-api-key";
+});
+
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpModule } from "@nestjs/axios";
 import { TypeOrmModule, getDataSourceToken } from "@nestjs/typeorm";
@@ -23,7 +34,7 @@ describe("WeatherController Integration", () => {
         TypeOrmModule.forRoot({
           type: "postgres",
           host: process.env.DB_HOST,
-          port: +process.env.DB_PORT!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+          port: +process.env.DB_PORT!,
           username: process.env.DB_USER,
           password: process.env.DB_PASSWORD,
           database: process.env.DB_DATABASE,
@@ -63,13 +74,13 @@ describe("WeatherController Integration", () => {
     }
 
     await weatherRepo.save(
-      weatherRepo.create({
-        city: "Kyiv",
-        temperature: 22.5,
-        humidity: 55,
-        description: "Partly cloudy",
-        fetchedAt: new Date(),
-      }),
+        weatherRepo.create({
+          city: "Kyiv",
+          temperature: 22.5,
+          humidity: 55,
+          description: "Partly cloudy",
+          fetchedAt: new Date(),
+        }),
     );
 
     const dto: GetWeatherDto = { city: "Kyiv" };
