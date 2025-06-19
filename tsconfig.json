@@ -14,5 +14,18 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["index.ts", "src/**/*", "generated/**/*"]
+  "include": [
+    "index.ts",
+    "src/**/*",
+    "generated/**/*",
+    "playwright.config.ts",
+    "test/**/*.ts",
+    "jest.config.js",
+    "eslint.config.mjs"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage"
+  ]
 }
