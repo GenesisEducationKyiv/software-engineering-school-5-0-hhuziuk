@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import { config } from "@/shared/configs/config";
+import { ITokenService } from "@/subscription/application/services/interfaces/token-service.interface";
 
-export class TokenService {
+export class TokenService implements ITokenService {
   generate(): string {
     return uuidv4();
   }

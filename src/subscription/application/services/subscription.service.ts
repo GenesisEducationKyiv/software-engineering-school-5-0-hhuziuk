@@ -10,6 +10,7 @@ import { SubscriptionManager } from "@/subscription/application/services/subscri
 import { NotificationService } from "@/subscription/application/services/notification.service";
 import { SUBSCRIPTION_QUERY_REPOSITORY } from "@/subscription/infrastructure/repositories/subscription-query.repository.interface";
 import { SubscriptionQueryRepository } from "@/subscription/infrastructure/repositories/subscription-query.repository";
+import { ConfirmEmailService } from "@/subscription/application/services/confirm-email.service";
 
 @Injectable()
 export class SubscriptionService {
@@ -20,6 +21,7 @@ export class SubscriptionService {
     private readonly tokenService: TokenService,
     private readonly subscriptionManager: SubscriptionManager,
     private readonly notification: NotificationService,
+    private readonly confirmEmail: ConfirmEmailService,
   ) {}
 
   @Cron("0 8 * * *", { timeZone: "Europe/Warsaw" })
@@ -35,17 +37,7 @@ export class SubscriptionService {
   async subscribe(dto: CreateSubscriptionDto): Promise<void> {
     const token = this.tokenService.generate();
     const subscription = await this.subscriptionManager.subscribe(dto, token);
-
-    await this.mailer.sendMail({
-      to: subscription.email,
-      subject: "Welcome! Confirm your weather subscription",
-      template: "confirm-subscription",
-      context: {
-        city: subscription.city,
-        confirmUrl: this.tokenService.getConfirmUrl(token),
-        unsubscribeUrl: this.tokenService.getUnsubscribeUrl(token),
-      },
-    });
+    await this.confirmEmail.sendConfirmationEmail(subscription, token);
   }
 
   async confirm(dto: ConfirmSubscriptionDto): Promise<void> {

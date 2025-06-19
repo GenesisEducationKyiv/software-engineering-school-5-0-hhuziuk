@@ -11,6 +11,7 @@ import { ConflictException, NotFoundException } from "@nestjs/common";
 import { TokenService } from "@/subscription/application/services/token.service";
 import { SubscriptionManager } from "@/subscription/application/services/subscription-manager.service";
 import { NotificationService } from "@/subscription/application/services/notification.service";
+import { ConfirmEmailService } from "@/subscription/application/services/confirm-email.service";
 
 jest.mock("@/shared/configs/config", () => ({
   config: {
@@ -35,6 +36,7 @@ describe("SubscriptionService", () => {
   let tokenServiceMock: TokenService;
   let subscriptionManagerMock: SubscriptionManager;
   let notificationServiceMock: NotificationService;
+  let confirmEmailServiceMock: ConfirmEmailService;
 
   const mockSubscriptionData = {
     id: "test-id",
@@ -55,42 +57,42 @@ describe("SubscriptionService", () => {
       unsubscribe: jest.fn(),
     };
 
+    mailerMock = { sendMail: jest.fn() } as any;
+
+    tokenServiceMock = {
+      generate: jest.fn().mockReturnValue("mock-generated-token"),
+      getConfirmUrl: jest.fn().mockReturnValue("mock-confirm-url"),
+      getUnsubscribeUrl: jest.fn().mockReturnValue("mock-unsubscribe-url"),
+    } as any;
+
+    subscriptionManagerMock = {
+      subscribe: jest.fn(),
+      confirm: jest.fn(),
+      unsubscribe: jest.fn(),
+    } as any;
+
+    notificationServiceMock = {
+      sendBatch: jest.fn(),
+    } as any;
+
+    confirmEmailServiceMock = {
+      sendConfirmationEmail: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubscriptionService,
         { provide: SUBSCRIPTION_QUERY_REPOSITORY, useValue: queryRepoMock },
         { provide: SUBSCRIPTION_COMMAND_REPOSITORY, useValue: commandRepoMock },
-        { provide: MailerService, useValue: { sendMail: jest.fn() } },
-        {
-          provide: TokenService,
-          useValue: {
-            generate: jest.fn().mockReturnValue("mock-generated-token"),
-            getConfirmUrl: jest.fn().mockReturnValue("mock-confirm-url"),
-            getUnsubscribeUrl: jest.fn().mockReturnValue("mock-unsubscribe-url"),
-          },
-        },
-        {
-          provide: SubscriptionManager,
-          useValue: {
-            subscribe: jest.fn(),
-            confirm: jest.fn(),
-            unsubscribe: jest.fn(),
-          },
-        },
-        {
-          provide: NotificationService,
-          useValue: {
-            sendBatch: jest.fn(),
-          },
-        },
+        { provide: MailerService, useValue: mailerMock },
+        { provide: TokenService, useValue: tokenServiceMock },
+        { provide: SubscriptionManager, useValue: subscriptionManagerMock },
+        { provide: NotificationService, useValue: notificationServiceMock },
+        { provide: ConfirmEmailService, useValue: confirmEmailServiceMock },
       ],
     }).compile();
 
     service = module.get<SubscriptionService>(SubscriptionService);
-    mailerMock = module.get<MailerService>(MailerService);
-    tokenServiceMock = module.get<TokenService>(TokenService);
-    subscriptionManagerMock = module.get<SubscriptionManager>(SubscriptionManager);
-    notificationServiceMock = module.get<NotificationService>(NotificationService);
   });
 
   afterEach(() => {
@@ -104,7 +106,7 @@ describe("SubscriptionService", () => {
       frequency: UpdateFrequency.DAILY,
     };
 
-    it("should call tokenService, subscriptionManager, and mailerService on successful subscription", async () => {
+    it("should call tokenService, subscriptionManager, and confirmEmailService on successful subscription", async () => {
       (subscriptionManagerMock.subscribe as jest.Mock).mockResolvedValue({
         ...mockSubscriptionData,
         email: dto.email,
@@ -116,16 +118,20 @@ describe("SubscriptionService", () => {
 
       expect(tokenServiceMock.generate).toHaveBeenCalled();
       expect(subscriptionManagerMock.subscribe).toHaveBeenCalledWith(dto, "mock-generated-token");
-      expect(mailerMock.sendMail).toHaveBeenCalled();
+      expect(confirmEmailServiceMock.sendConfirmationEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ email: dto.email, city: dto.city, token: "test-token" }) ||
+          expect.any(Object),
+        "mock-generated-token",
+      );
     });
 
-    it("should propagate ConflictException from subscriptionManager and not send email", async () => {
+    it("should propagate ConflictException from subscriptionManager and not call confirmEmailService", async () => {
       (subscriptionManagerMock.subscribe as jest.Mock).mockRejectedValueOnce(
         new ConflictException("Email already subscribed"),
       );
 
       await expect(service.subscribe(dto)).rejects.toBeInstanceOf(ConflictException);
-      expect(mailerMock.sendMail).not.toHaveBeenCalled();
+      expect(confirmEmailServiceMock.sendConfirmationEmail).not.toHaveBeenCalled();
     });
   });
 
@@ -138,14 +144,14 @@ describe("SubscriptionService", () => {
       await expect(service.confirm(dto)).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it("should not call confirmSubscription if already confirmed", async () => {
+    it("should not call subscriptionManager.confirm if already confirmed", async () => {
       queryRepoMock.findByToken.mockResolvedValue({
         ...mockSubscriptionData,
         confirmed: true,
       });
 
       await service.confirm(dto);
-      expect(commandRepoMock.confirmSubscription).not.toHaveBeenCalled();
+      expect(subscriptionManagerMock.confirm).not.toHaveBeenCalled();
     });
 
     it("should confirm subscription if not confirmed", async () => {
@@ -167,7 +173,7 @@ describe("SubscriptionService", () => {
       await expect(service.unsubscribe(dto)).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it("should call unsubscribe on repo", async () => {
+    it("should call subscriptionManager.unsubscribe when token valid", async () => {
       queryRepoMock.findByToken.mockResolvedValue({ ...mockSubscriptionData });
 
       await service.unsubscribe(dto);

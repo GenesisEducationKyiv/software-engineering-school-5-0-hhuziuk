@@ -13,6 +13,8 @@ import { UpdateFrequency } from "src/shared/enums/frequency.enum";
 
 import { SubscriptionService } from "@/subscription/application/services/subscription.service";
 import { NotificationService } from "@/subscription/application/services/notification.service";
+import { ConfirmEmailService } from "@/subscription/application/services/confirm-email.service";
+import { MailerModule } from "@nestjs-modules/mailer";
 
 dotenv.config({ path: ".env.test" });
 
@@ -54,6 +56,9 @@ describe("SubscriptionController Integration", () => {
           entities: [SubscriptionOrmEntity],
           logging: false,
         }),
+        MailerModule.forRoot({
+          transport: { jsonTransport: true },
+        }),
         SubscriptionModule,
       ],
     })
@@ -61,6 +66,8 @@ describe("SubscriptionController Integration", () => {
       .useValue(mockSubscriptionService)
       .overrideProvider(NotificationService)
       .useValue(mockNotificationService)
+      .overrideProvider(ConfirmEmailService)
+      .useValue({ sendConfirmationEmail: jest.fn() })
       .compile();
 
     ds = moduleRef.get<DataSource>(getDataSourceToken());
@@ -76,12 +83,7 @@ describe("SubscriptionController Integration", () => {
 
   beforeEach(async () => {
     if (repo) {
-      try {
-        await repo.clear();
-      } catch (error) {
-        console.error("Error clearing subscriptionRepo in beforeEach:", error);
-        throw error;
-      }
+      await repo.clear();
     }
     mockSubscriptionService.subscribe.mockClear();
     mockSubscriptionService.confirm.mockClear();
