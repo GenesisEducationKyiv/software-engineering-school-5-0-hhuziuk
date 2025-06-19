@@ -8,7 +8,8 @@ services:
       - postgres
     restart: always
     environment:
-      API_KEY: "${API_KEY}"
+      WEATHER_API_KEY: "${WEATHER_API_KEY}"
+      OPENWEATHER_API_KEY: "${OPENWEATHER_API_KEY}"
       APP_BASE_URL: "${APP_BASE_URL}"
       SMTP_HOST: "${SMTP_HOST}"
       SMTP_PORT: "${SMTP_PORT}"
