@@ -2,7 +2,6 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { config } from "@/shared/configs/config";
-import { IWeatherApiClient } from "@/weather/infrastructure/clients/weather-api-client.interface";
 import { Weather } from "@/weather/domain/entities/weather.entity";
 import { WeatherHandler } from "@/weather/infrastructure/clients/weather-handler";
 
@@ -12,7 +11,7 @@ export class OpenWeatherMapApiClient extends WeatherHandler {
     super();
   }
 
-  protected providerName(): string {
+  public providerName(): string {
     return "openweathermap.org";
   }
 
@@ -27,12 +26,6 @@ export class OpenWeatherMapApiClient extends WeatherHandler {
 
     const response = await firstValueFrom(this.http.get(url));
     const data = response.data;
-
-    this.logResponse({
-      temp: data.main?.temp,
-      humidity: data.main?.humidity,
-      condition: data.weather?.[0]?.description,
-    });
 
     const tempC = parseFloat((data.main.temp - 273.15).toFixed(2));
     return new Weather(

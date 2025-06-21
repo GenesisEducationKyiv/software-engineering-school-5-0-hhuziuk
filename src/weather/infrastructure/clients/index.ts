@@ -9,8 +9,8 @@ export const WeatherApiClientProvider = {
   useFactory: (http: HttpService) => {
     const primary = new OpenWeatherMapApiClient(http);
     const fallback = new WeatherApiClient(http);
-    primary.setNext(fallback);
 
+    primary.setNext(fallback);
     return new WeatherLoggingProxy(primary);
   },
   inject: [HttpService],

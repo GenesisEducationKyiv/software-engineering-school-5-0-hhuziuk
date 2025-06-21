@@ -1,10 +1,10 @@
-import { IWeatherApiClient } from "@/weather/infrastructure/clients/weather-api-client.interface";
+import { NamedWeatherClient } from "./weather-api-client.interface";
 import { Weather } from "@/weather/domain/entities/weather.entity";
 
-export abstract class WeatherHandler implements IWeatherApiClient {
-  protected nextHandler?: IWeatherApiClient;
+export abstract class WeatherHandler implements NamedWeatherClient {
+  protected nextHandler?: NamedWeatherClient;
 
-  setNext(handler: IWeatherApiClient): IWeatherApiClient {
+  setNext(handler: NamedWeatherClient): NamedWeatherClient {
     this.nextHandler = handler;
     return handler;
   }
@@ -23,12 +23,6 @@ export abstract class WeatherHandler implements IWeatherApiClient {
     }
   }
 
-  protected logResponse(data: unknown): void {
-    const payload = typeof data === "object" ? JSON.stringify(data) : String(data);
-    console.info(`${this.providerName()} - Response: ${payload}`);
-  }
-
-  protected abstract providerName(): string;
-
+  public abstract providerName(): string;
   protected abstract handle(city: string): Promise<Weather | null>;
 }
