@@ -8,7 +8,7 @@ export class WeatherController {
 
   @Get("weather")
   async getWeather(@Query() dto: GetWeatherDto) {
-    const weather = await this.service.getCurrent(dto.city);
+    const weather = await this.service.getCurrentWeather(dto.city);
     return {
       temperature: weather.temperature,
       humidity: weather.humidity,

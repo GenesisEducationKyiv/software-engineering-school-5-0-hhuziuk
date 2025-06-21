@@ -16,7 +16,7 @@ describe("NotificationBatchSender", () => {
 
   beforeEach(() => {
     weatherService = {
-      getCurrent: jest.fn(),
+      getCurrentWeather: jest.fn(),
     } as any;
 
     mailer = {
@@ -66,7 +66,9 @@ describe("NotificationBatchSender", () => {
       description: "Rain",
       fetchedAt: new Date(),
     };
-    weatherService.getCurrent.mockResolvedValueOnce(weatherA).mockResolvedValueOnce(weatherB);
+    weatherService.getCurrentWeather
+      .mockResolvedValueOnce(weatherA)
+      .mockResolvedValueOnce(weatherB);
 
     (strategyResolver.get as jest.Mock).mockImplementation((freq) => {
       if (freq === UpdateFrequency.DAILY) return strategyMock;
@@ -84,9 +86,9 @@ describe("NotificationBatchSender", () => {
 
     expect(queryRepo.findConfirmedByFrequency).toHaveBeenCalledWith(UpdateFrequency.DAILY);
 
-    expect(weatherService.getCurrent).toHaveBeenCalledTimes(2);
-    expect(weatherService.getCurrent).toHaveBeenCalledWith("CityA");
-    expect(weatherService.getCurrent).toHaveBeenCalledWith("CityB");
+    expect(weatherService.getCurrentWeather).toHaveBeenCalledTimes(2);
+    expect(weatherService.getCurrentWeather).toHaveBeenCalledWith("CityA");
+    expect(weatherService.getCurrentWeather).toHaveBeenCalledWith("CityB");
 
     expect(strategyMock.buildContext).toHaveBeenCalledTimes(2);
     expect(strategyMock.buildContext).toHaveBeenCalledWith(subs[0], weatherA);
@@ -135,7 +137,7 @@ describe("NotificationBatchSender", () => {
       description: "Cloudy",
       fetchedAt: new Date(),
     };
-    weatherService.getCurrent.mockResolvedValue(weather);
+    weatherService.getCurrentWeather.mockResolvedValue(weather);
 
     const hourlyStrategyMock: jest.Mocked<NotificationStrategy> = {
       frequency: UpdateFrequency.HOURLY,
@@ -157,7 +159,7 @@ describe("NotificationBatchSender", () => {
     await sender.send(UpdateFrequency.HOURLY);
 
     expect(queryRepo.findConfirmedByFrequency).toHaveBeenCalledWith(UpdateFrequency.HOURLY);
-    expect(weatherService.getCurrent).toHaveBeenCalledWith("CityX");
+    expect(weatherService.getCurrentWeather).toHaveBeenCalledWith("CityX");
     expect(hourlyStrategyMock.buildContext).toHaveBeenCalledWith(hourlySub[0], weather);
     expect(hourlyStrategyMock.getSubject).toHaveBeenCalled();
     expect(hourlyStrategyMock.getTemplate).toHaveBeenCalled();

@@ -6,7 +6,7 @@ import { WeatherCacheService } from "@/weather/application/services/weather-cach
 import {
   IWeatherApiClient,
   WEATHER_API_CLIENT,
-} from "@/weather/application/clients/weather-api-client.interface";
+} from "@/weather/infrastructure/clients/weather-api-client.interface";
 import {
   IWeatherRepository,
   WEATHER_REPOSITORY,
@@ -59,15 +59,15 @@ describe("WeatherService", () => {
     const city = "TestCity";
 
     it("should throw BadRequestException if city string is empty or whitespace", async () => {
-      await expect(service.getCurrent("")).rejects.toBeInstanceOf(BadRequestException);
-      await expect(service.getCurrent("   ")).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.getCurrentWeather("")).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.getCurrentWeather("   ")).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it("should return cached weather if WeatherCacheService.getCached provides it", async () => {
       const cachedWeather = new Weather(city, 20, 60, "Sunny", new Date());
       (cacheServiceMock.getCached as jest.Mock).mockResolvedValue(cachedWeather);
 
-      const result = await service.getCurrent(city);
+      const result = await service.getCurrentWeather(city);
 
       expect(result).toBe(cachedWeather);
       expect(cacheServiceMock.getCached).toHaveBeenCalledWith(city);
@@ -80,7 +80,7 @@ describe("WeatherService", () => {
       const freshWeatherFromApi = new Weather(city, 15, 70, "Cloudy", new Date());
       (apiClientMock.fetchCurrent as jest.Mock).mockResolvedValue(freshWeatherFromApi);
 
-      const result = await service.getCurrent(city);
+      const result = await service.getCurrentWeather(city);
 
       expect(cacheServiceMock.getCached).toHaveBeenCalledWith(city);
       expect(apiClientMock.fetchCurrent).toHaveBeenCalledWith(city);
