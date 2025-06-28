@@ -1,4 +1,18 @@
+version: '3.8'
+
 services:
+  redis:
+    image: redis:7
+    container_name: redis-socket
+    restart: always
+    command:
+      - redis-server
+      - --unixsocket /data/redis.sock
+      - --unixsocketperm 777
+      - --protected-mode no
+    volumes:
+      - redis_socket:/data
+
   weather-test:
     container_name: genesis-test
     build:
@@ -6,6 +20,7 @@ services:
       dockerfile: ./Dockerfile
     depends_on:
       - postgres
+      - redis
     restart: always
     environment:
       WEATHER_API_KEY: "${WEATHER_API_KEY}"
@@ -22,6 +37,12 @@ services:
       DB_USER: "${DB_USER}"
       DB_PASSWORD: "${DB_PASSWORD}"
       DB_DATABASE: "${DB_DATABASE}"
+      REDIS_PATH: "${REDIS_PATH}"
+      REDIS_TTL: "${REDIS_TTL}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_USER: "${REDIS_USER}"
+    volumes:
+      - redis_socket:/data
     ports:
       - "3000:3000"
 
@@ -40,3 +61,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_socket:

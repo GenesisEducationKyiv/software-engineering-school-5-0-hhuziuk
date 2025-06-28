@@ -1,6 +1,7 @@
 services:
   postgres-test:
     image: postgres:16
+    container_name: postgres-test
     ports:
       - '55432:5432'
     environment:
@@ -11,3 +12,15 @@ services:
       test: ["CMD-SHELL", "pg_isready -U test_user"]
       interval: 5s
       retries: 5
+
+  redis-test:
+    image: redis:7
+    container_name: redis-test
+    ports:
+      - '6379:6379'
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
