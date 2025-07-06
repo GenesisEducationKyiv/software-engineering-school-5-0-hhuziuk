@@ -21,7 +21,7 @@ export class NotificationBatchSender {
     const subs = await this.queryRepo.findConfirmedByFrequency(frequency);
 
     for (const sub of subs) {
-      const weather = await this.weatherService.getCurrent(sub.city);
+      const weather = await this.weatherService.getCurrentWeather(sub.city);
       const context = strategy.buildContext(sub, weather);
       await this.mailer.sendMail({
         to: sub.email,

@@ -18,7 +18,7 @@ export class SubscriptionCommandRepository implements ISubscriptionCommandReposi
   ) {}
 
   async create(subscription: Subscription): Promise<void> {
-    const exists = await this.ormRepo.findOne({
+    const exists = await this.ormRepo.exists({
       where: { email: subscription.email, city: subscription.city },
     });
 

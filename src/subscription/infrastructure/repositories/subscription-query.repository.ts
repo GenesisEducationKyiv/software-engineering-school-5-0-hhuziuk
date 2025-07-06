@@ -41,7 +41,6 @@ export class SubscriptionQueryRepository implements ISubscriptionQueryRepository
   }
 
   async isEmailSubscribed(email: string, city: string): Promise<boolean> {
-    const count = await this.ormRepo.count({ where: { email, city } });
-    return count > 0;
+    return await this.ormRepo.exists({ where: { email, city } });
   }
 }
