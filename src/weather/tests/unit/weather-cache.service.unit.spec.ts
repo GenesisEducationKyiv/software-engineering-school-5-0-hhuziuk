@@ -25,8 +25,9 @@ describe("WeatherCacheService", () => {
     } as any;
 
     metrics = {
-      cacheHits: { inc: jest.fn() },
-      cacheMisses: { inc: jest.fn() },
+      cacheRequests: {
+        inc: jest.fn(),
+      },
       cacheLatency: {
         startTimer: jest.fn().mockReturnValue(jest.fn()),
       },
@@ -57,7 +58,8 @@ describe("WeatherCacheService", () => {
       const result = await service.getCached("Kyiv");
 
       expect(redis.get).toHaveBeenCalledWith("weather:kyiv");
-      expect(metrics.cacheHits.inc).toHaveBeenCalledWith({ key: "weather:kyiv" });
+      expect(metrics.cacheRequests.inc).toHaveBeenCalledWith({ status: "hit", city: "kyiv" });
+
       expect(result).toBe(weather);
     });
 
@@ -84,7 +86,7 @@ describe("WeatherCacheService", () => {
       expect(redis.get).toHaveBeenCalled();
       expect(repo.findByCity).toHaveBeenCalledWith("Kyiv");
       expect(redis.set).toHaveBeenCalledWith("weather:kyiv", dbWeather, TTL);
-      expect(metrics.cacheMisses.inc).toHaveBeenCalledWith({ key: "weather:kyiv" });
+      expect(metrics.cacheRequests.inc).toHaveBeenCalledWith({ status: "miss", city: "kyiv" });
       expect(result).toBe(dbWeather);
     });
 
@@ -111,12 +113,12 @@ describe("WeatherCacheService", () => {
       expect(result).toBeNull();
       expect(redis.get).toHaveBeenCalled();
       expect(repo.findByCity).toHaveBeenCalledWith("Kyiv");
-      expect(metrics.cacheMisses.inc).toHaveBeenCalled();
+      expect(metrics.cacheRequests.inc).toHaveBeenCalled();
     });
   });
 
   describe("updateCache", () => {
-    it("saves weather to cache and repository", async () => {
+    it("saves weather only to cache, без запису в БД", async () => {
       const weather: Weather = {
         id: "4",
         city: "Lviv",
@@ -130,7 +132,7 @@ describe("WeatherCacheService", () => {
       await service.updateCache(weather);
 
       expect(redis.set).toHaveBeenCalledWith("weather:lviv", weather, TTL);
-      expect(repo.save).toHaveBeenCalledWith(weather);
+      expect(repo.save).not.toHaveBeenCalled();
     });
   });
 });

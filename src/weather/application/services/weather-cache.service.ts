@@ -25,12 +25,12 @@ export class WeatherCacheService {
     try {
       const cached = await this.redis.get<Weather>(key);
       if (cached) {
-        this.metrics.cacheHits.inc({ key });
+        this.metrics.cacheRequests.inc({ status: "hit", city: city.toLowerCase() });
         return cached;
       }
 
       const dbData = await this.repo.findByCity(city);
-      this.metrics.cacheMisses.inc({ key });
+      this.metrics.cacheRequests.inc({ status: "miss", city: city.toLowerCase() });
 
       if (!dbData) {
         return null;
@@ -51,6 +51,5 @@ export class WeatherCacheService {
   async updateCache(weather: Weather): Promise<void> {
     const key = `weather:${weather.city.toLowerCase()}`;
     await this.redis.set<Weather>(key, weather, TTL_SECONDS);
-    await this.repo.save(weather);
   }
 }
