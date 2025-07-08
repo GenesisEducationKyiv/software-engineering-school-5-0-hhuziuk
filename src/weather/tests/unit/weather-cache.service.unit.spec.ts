@@ -25,9 +25,8 @@ describe("WeatherCacheService", () => {
     } as any;
 
     metrics = {
-      cacheRequests: {
-        inc: jest.fn(),
-      },
+      cacheHits: { inc: jest.fn() },
+      cacheMisses: { inc: jest.fn() },
       cacheLatency: {
         startTimer: jest.fn().mockReturnValue(jest.fn()),
       },
@@ -58,8 +57,7 @@ describe("WeatherCacheService", () => {
       const result = await service.getCached("Kyiv");
 
       expect(redis.get).toHaveBeenCalledWith("weather:kyiv");
-      expect(metrics.cacheRequests.inc).toHaveBeenCalledWith({ status: "hit", city: "kyiv" });
-
+      expect(metrics.cacheHits.inc).toHaveBeenCalledWith({ key: "weather:kyiv" });
       expect(result).toBe(weather);
     });
 
@@ -86,7 +84,7 @@ describe("WeatherCacheService", () => {
       expect(redis.get).toHaveBeenCalled();
       expect(repo.findByCity).toHaveBeenCalledWith("Kyiv");
       expect(redis.set).toHaveBeenCalledWith("weather:kyiv", dbWeather, TTL);
-      expect(metrics.cacheRequests.inc).toHaveBeenCalledWith({ status: "miss", city: "kyiv" });
+      expect(metrics.cacheMisses.inc).toHaveBeenCalledWith({ key: "weather:kyiv" });
       expect(result).toBe(dbWeather);
     });
 
@@ -113,12 +111,12 @@ describe("WeatherCacheService", () => {
       expect(result).toBeNull();
       expect(redis.get).toHaveBeenCalled();
       expect(repo.findByCity).toHaveBeenCalledWith("Kyiv");
-      expect(metrics.cacheRequests.inc).toHaveBeenCalled();
+      expect(metrics.cacheMisses.inc).toHaveBeenCalled();
     });
   });
 
   describe("updateCache", () => {
-    it("saves weather only to cache, без запису в БД", async () => {
+    it("saves weather to cache and repository", async () => {
       const weather: Weather = {
         id: "4",
         city: "Lviv",
@@ -132,7 +130,7 @@ describe("WeatherCacheService", () => {
       await service.updateCache(weather);
 
       expect(redis.set).toHaveBeenCalledWith("weather:lviv", weather, TTL);
-      expect(repo.save).not.toHaveBeenCalled();
+      expect(repo.save).toHaveBeenCalledWith(weather);
     });
   });
 });

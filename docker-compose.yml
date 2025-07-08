@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   redis:
     image: redis:7
@@ -10,17 +12,15 @@ services:
       - --protected-mode no
     volumes:
       - redis_socket:/data
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      retries: 5
-      start_period: 5s
 
-  weather:
+  weather-test:
     container_name: genesis-test
     build:
       context: ./
       dockerfile: ./Dockerfile
+    depends_on:
+      - postgres
+      - redis
     restart: always
     environment:
       WEATHER_API_KEY: "${WEATHER_API_KEY}"
@@ -45,11 +45,6 @@ services:
       - redis_socket:/data
     ports:
       - "3000:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
 
   postgres:
     image: postgres:16
@@ -63,11 +58,6 @@ services:
       POSTGRES_USER: "${DB_USER}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
       POSTGRES_DB: "${DB_DATABASE}"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER}" ]
-      interval: 5s
-      retries: 5
-      start_period: 5s
 
 volumes:
   postgres_data:
