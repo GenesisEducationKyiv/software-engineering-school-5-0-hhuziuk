@@ -7,17 +7,25 @@ import { WeatherModule } from "src/weather/weather.module";
 import { WeatherOrmEntity } from "src/weather/infrastructure/database/weather.orm-entity";
 import { GetWeatherDto } from "src/subscription/application/dto/get-weather.dto";
 import { WeatherController } from "src/weather/presentation/controllers/weather.controller";
+import { RedisService } from "@/shared/redis/redis.service";
 
 dotenv.config({ path: ".env.test" });
 
+jest.setTimeout(15_000);
+
 describe("WeatherController Integration", () => {
-  let moduleRef: TestingModule;
   let controller: WeatherController;
   let ds: DataSource;
   let weatherRepo: Repository<WeatherOrmEntity>;
 
+  const redisStub = {
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue("OK"),
+    quit: jest.fn().mockResolvedValue(null),
+  };
+
   beforeAll(async () => {
-    moduleRef = await Test.createTestingModule({
+    const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [
         HttpModule,
         TypeOrmModule.forRoot({
@@ -33,35 +41,29 @@ describe("WeatherController Integration", () => {
         }),
         WeatherModule,
       ],
-    }).compile();
+    })
+      .overrideProvider(RedisService)
+      .useValue(redisStub)
+      .compile();
 
     ds = moduleRef.get<DataSource>(getDataSourceToken());
     weatherRepo = ds.getRepository(WeatherOrmEntity);
     controller = moduleRef.get<WeatherController>(WeatherController);
   });
 
-  afterAll(async () => {
-    if (ds && ds.isInitialized) {
-      await ds.destroy();
-    }
+  beforeEach(async () => {
+    await weatherRepo.clear();
+    jest.clearAllMocks();
   });
 
-  beforeEach(async () => {
-    if (weatherRepo) {
-      try {
-        await weatherRepo.clear();
-      } catch (error) {
-        console.error("Error clearing weatherRepo in beforeEach:", error);
-        throw error;
-      }
+  afterAll(async () => {
+    if (ds?.isInitialized) {
+      await ds.destroy();
     }
+    await redisStub.quit();
   });
 
   it("GET /weather returns current weather from DB", async () => {
-    if (!weatherRepo) {
-      throw new Error("Weather repository not initialized for test.");
-    }
-
     await weatherRepo.save(
       weatherRepo.create({
         city: "Kyiv",
@@ -80,5 +82,16 @@ describe("WeatherController Integration", () => {
       humidity: 55,
       description: "Partly cloudy",
     });
+
+    expect(redisStub.set).toHaveBeenCalledWith(
+      expect.stringContaining("weather:kyiv"),
+      expect.objectContaining({
+        city: "Kyiv",
+        temperature: 22.5,
+        humidity: 55,
+        description: "Partly cloudy",
+      }),
+      expect.any(Number),
+    );
   });
 });

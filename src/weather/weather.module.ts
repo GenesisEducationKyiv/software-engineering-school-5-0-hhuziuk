@@ -9,9 +9,16 @@ import { WeatherController } from "src/weather/presentation/controllers/weather.
 import { WeatherCacheService } from "@/weather/application/services/weather-cache.service";
 import { WEATHER_API_CLIENT } from "@/weather/infrastructure/clients/weather-api-client.interface";
 import { WeatherApiClientProvider } from "@/weather/infrastructure/clients";
+import { CustomRedisModule } from "@/shared/redis/redis.module";
+import { MetricsModule } from "@/shared/metrics/metrics.module";
 
 @Module({
-  imports: [HttpModule, TypeOrmModule.forFeature([WeatherOrmEntity])],
+  imports: [
+    HttpModule,
+    TypeOrmModule.forFeature([WeatherOrmEntity]),
+    CustomRedisModule,
+    MetricsModule,
+  ],
   controllers: [WeatherController],
   providers: [
     WeatherService,

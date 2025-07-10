@@ -38,4 +38,11 @@ export const config = {
       dir: join(process.cwd(), "templates"),
     },
   },
+
+  redis: {
+    socketPath: requireEnv("REDIS_PATH"),
+    ttl: parseInt(requireEnv("REDIS_TTL"), 10),
+    password: requireEnv("REDIS_PASSWORD"),
+    username: requireEnv("REDIS_USER"),
+  },
 };
