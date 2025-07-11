@@ -3,9 +3,15 @@ import {
   IWeatherRepository,
   WEATHER_REPOSITORY,
 } from "@/weather/infrastructure/repositories/weather.repository.interface";
-import { RedisService } from "@/shared/redis/redis.service";
-import { MetricsService } from "@/shared/metrics/metrics.service";
 import { Weather } from "@/weather/domain/entities/weather.entity";
+import {
+  IMetricsService,
+  METRICS_SERVICE_INTERFACE,
+} from "@/weather/infrastructure/metrics/metrics-service.interface";
+import {
+  IRedisService,
+  REDIS_SERVICE_INTERFACE,
+} from "@/weather/infrastructure/redis/redis-service.interface";
 
 const TTL_SECONDS = 3600;
 
@@ -14,8 +20,12 @@ export class WeatherCacheService {
   constructor(
     @Inject(WEATHER_REPOSITORY)
     private readonly repo: IWeatherRepository,
-    private readonly redis: RedisService,
-    private readonly metrics: MetricsService,
+
+    @Inject(REDIS_SERVICE_INTERFACE)
+    private readonly redis: IRedisService,
+
+    @Inject(METRICS_SERVICE_INTERFACE)
+    private readonly metrics: IMetricsService,
   ) {}
 
   async getCached(city: string): Promise<Weather | null> {
@@ -25,12 +35,12 @@ export class WeatherCacheService {
     try {
       const cached = await this.redis.get<Weather>(key);
       if (cached) {
-        this.metrics.cacheHits.inc({ key });
+        this.metrics.cacheRequests.inc({ status: "hit", city: city.toLowerCase() });
         return cached;
       }
 
       const dbData = await this.repo.findByCity(city);
-      this.metrics.cacheMisses.inc({ key });
+      this.metrics.cacheRequests.inc({ status: "miss", city: city.toLowerCase() });
 
       if (!dbData) {
         return null;
@@ -51,6 +61,5 @@ export class WeatherCacheService {
   async updateCache(weather: Weather): Promise<void> {
     const key = `weather:${weather.city.toLowerCase()}`;
     await this.redis.set<Weather>(key, weather, TTL_SECONDS);
-    await this.repo.save(weather);
   }
 }

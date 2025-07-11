@@ -7,13 +7,10 @@ import { WeatherOrmEntity } from "@/weather/infrastructure/database/weather.orm-
 import { MailerModule } from "@nestjs-modules/mailer";
 import { ScheduleModule } from "@nestjs/schedule";
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
-import { MetricsModule } from "@/shared/metrics/metrics.module";
-import { RedisProviderModule } from "@/shared/redis/redis-provider.module";
 import { config } from "@/shared/configs/config";
 
 @Module({
   imports: [
-    RedisProviderModule,
     ScheduleModule.forRoot(),
     MailerModule.forRoot({
       transport: {
@@ -46,7 +43,6 @@ import { config } from "@/shared/configs/config";
     }),
     WeatherModule,
     SubscriptionModule,
-    MetricsModule,
   ],
   controllers: [],
   providers: [],

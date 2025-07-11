@@ -7,7 +7,7 @@ import { WeatherModule } from "src/weather/weather.module";
 import { WeatherOrmEntity } from "src/weather/infrastructure/database/weather.orm-entity";
 import { GetWeatherDto } from "src/subscription/application/dto/get-weather.dto";
 import { WeatherController } from "src/weather/presentation/controllers/weather.controller";
-import { RedisService } from "@/shared/redis/redis.service";
+import { REDIS_SERVICE_INTERFACE } from "@/weather/infrastructure/redis/redis-service.interface";
 
 dotenv.config({ path: ".env.test" });
 
@@ -42,7 +42,7 @@ describe("WeatherController Integration", () => {
         WeatherModule,
       ],
     })
-      .overrideProvider(RedisService)
+      .overrideProvider(REDIS_SERVICE_INTERFACE)
       .useValue(redisStub)
       .compile();
 
