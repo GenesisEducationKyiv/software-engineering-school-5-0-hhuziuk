@@ -1,6 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 
-const PAGE_URL = "http://localhost:8080/html/index.html";
+const PAGE_URL = "http://localhost:8080/index.html";
 
 test.describe("Weather Subscription Page", () => {
   let page: Page;

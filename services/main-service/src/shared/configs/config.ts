@@ -51,5 +51,5 @@ export const config = {
   grpc: {
     useGrpcEmail: requireEnv("USE_GRPC_EMAIL"),
     emailServiceGrpcUrl: requireEnv("EMAIL_SERVICE_GRPC_URL"),
-  }
+  },
 };

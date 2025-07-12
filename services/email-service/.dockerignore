@@ -1,0 +1,15 @@
+node_modules
+
+dist
+
+.env*
+.env
+
+logs
+metrics
+
+.idea
+.vscode
+*.suo
+*.user
+.DS_Store

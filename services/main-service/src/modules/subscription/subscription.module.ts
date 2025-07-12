@@ -21,7 +21,7 @@ import { DailyNotificationStrategy } from "./application/services/strategies/dai
 import { HourlyNotificationStrategy } from "./application/services/strategies/hourly-notification.strategy";
 import { HttpModule } from "@nestjs/axios";
 import { EmailModule } from "@/shared/clients/email.module";
-import {GrpcEmailModule} from "@/modules/subscription/infrastructure/grpc/grpc-email.module";
+import { GrpcEmailModule } from "@/modules/subscription/infrastructure/grpc/grpc-email.module";
 
 @Module({
   imports: [

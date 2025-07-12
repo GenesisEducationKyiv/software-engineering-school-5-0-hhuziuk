@@ -4,13 +4,13 @@ import { HttpService } from "@nestjs/axios";
 import { config } from "../../../../shared/configs/config";
 import { TemplateType } from "../dto/templates.enum";
 import { firstValueFrom } from "rxjs";
-import {GrpcEmailClientService} from "@/modules/subscription/infrastructure/grpc/grpc-email.client";
+import { GrpcEmailClientService } from "@/modules/subscription/infrastructure/grpc/grpc-email.client";
 
 @Injectable()
 export class ConfirmEmailService {
   constructor(
-      private readonly http: HttpService,
-      private readonly grpcEmailClient: GrpcEmailClientService,
+    private readonly http: HttpService,
+    private readonly grpcEmailClient: GrpcEmailClientService,
   ) {}
 
   private get baseUrl(): string {
