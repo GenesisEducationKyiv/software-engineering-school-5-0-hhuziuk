@@ -15,7 +15,8 @@ export const config = {
     baseUrl: requireEnv("APP_BASE_URL"),
   },
 
-  apiKey: requireEnv("API_KEY"),
+  openWeatherApiKey: requireEnv("OPENWEATHER_API_KEY"),
+  weatherApiKey: requireEnv("WEATHER_API_KEY"),
 
   db: {
     host: requireEnv("DB_HOST"),
@@ -36,5 +37,12 @@ export const config = {
     templates: {
       dir: join(process.cwd(), "templates"),
     },
+  },
+
+  redis: {
+    socketPath: requireEnv("REDIS_PATH"),
+    ttl: parseInt(requireEnv("REDIS_TTL"), 10),
+    password: requireEnv("REDIS_PASSWORD"),
+    username: requireEnv("REDIS_USER"),
   },
 };

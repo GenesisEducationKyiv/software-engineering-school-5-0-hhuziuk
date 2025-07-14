@@ -1,13 +1,13 @@
 import { Module } from "@nestjs/common";
 import { WeatherModule } from "@/weather/weather.module";
-import { TypeOrmModule } from "@nestjs/typeorm";
 import { SubscriptionModule } from "@/subscription/subscription.module";
-import { config } from "@/shared/configs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
 import { SubscriptionOrmEntity } from "@/subscription/infrastructure/database/subscription.orm-entity";
 import { WeatherOrmEntity } from "@/weather/infrastructure/database/weather.orm-entity";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { ScheduleModule } from "@nestjs/schedule";
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
+import { config } from "@/shared/configs/config";
 
 @Module({
   imports: [
@@ -46,5 +46,6 @@ import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handleba
   ],
   controllers: [],
   providers: [],
+  exports: [],
 })
 export class AppModule {}
