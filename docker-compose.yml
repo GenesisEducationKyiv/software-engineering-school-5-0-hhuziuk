@@ -1,0 +1,74 @@
+services:
+  redis:
+    image: redis:7
+    container_name: redis-socket
+    restart: always
+    command:
+      - redis-server
+      - --unixsocket /data/redis.sock
+      - --unixsocketperm 777
+      - --protected-mode no
+    volumes:
+      - redis_socket:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+
+  weather:
+    container_name: genesis-test
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    restart: always
+    environment:
+      WEATHER_API_KEY: "${WEATHER_API_KEY}"
+      OPENWEATHER_API_KEY: "${OPENWEATHER_API_KEY}"
+      APP_BASE_URL: "${APP_BASE_URL}"
+      SMTP_HOST: "${SMTP_HOST}"
+      SMTP_PORT: "${SMTP_PORT}"
+      SMTP_SECURE: "${SMTP_SECURE}"
+      SMTP_USER: "${SMTP_USER}"
+      SMTP_PASS: "${SMTP_PASS}"
+      SMTP_FROM: "${SMTP_FROM}"
+      DB_HOST: postgres
+      DB_PORT: "${DB_PORT}"
+      DB_USER: "${DB_USER}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_DATABASE: "${DB_DATABASE}"
+      REDIS_PATH: "${REDIS_PATH}"
+      REDIS_TTL: "${REDIS_TTL}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_USER: "${REDIS_USER}"
+    volumes:
+      - redis_socket:/data
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_DATABASE}"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER}" ]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  redis_socket:
