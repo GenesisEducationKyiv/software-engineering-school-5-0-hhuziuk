@@ -14,12 +14,12 @@ import { ConfirmEmailService } from "./confirm-email.service";
 @Injectable()
 export class SubscriptionService {
   constructor(
-    @Inject(SUBSCRIPTION_QUERY_REPOSITORY)
-    private readonly queryRepo: SubscriptionQueryRepository,
-    private readonly tokenService: TokenService,
-    private readonly subscriptionManager: SubscriptionManager,
-    private readonly notification: NotificationService,
-    private readonly confirmEmail: ConfirmEmailService,
+      @Inject(SUBSCRIPTION_QUERY_REPOSITORY)
+      private readonly queryRepo: SubscriptionQueryRepository,
+      private readonly tokenService: TokenService,
+      private readonly subscriptionManager: SubscriptionManager,
+      private readonly notification: NotificationService,
+      private readonly confirmEmail: ConfirmEmailService,
   ) {}
 
   @Cron("0 8 * * *", { timeZone: "Europe/Warsaw" })
