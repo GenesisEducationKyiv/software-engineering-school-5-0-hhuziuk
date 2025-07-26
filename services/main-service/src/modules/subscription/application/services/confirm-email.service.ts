@@ -1,25 +1,13 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
+import { ClientProxy } from "@nestjs/microservices";
 import { Subscription } from "../../domain/entities/subscription.entity";
-import { HttpService } from "@nestjs/axios";
-import { config } from "../../../../shared/configs/config";
 import { TemplateType } from "../dto/templates.enum";
-import { firstValueFrom } from "rxjs";
-import { GrpcEmailClientService } from "@/modules/subscription/infrastructure/grpc/grpc-email.client";
+import { config } from "@/shared/configs/config";
+import { lastValueFrom } from "rxjs";
 
 @Injectable()
 export class ConfirmEmailService {
-  constructor(
-    private readonly http: HttpService,
-    private readonly grpcEmailClient: GrpcEmailClientService,
-  ) {}
-
-  private get baseUrl(): string {
-    return config.emailServiceBaseUrl;
-  }
-
-  private get useGrpc(): boolean {
-    return config.grpc.useGrpcEmail === "true";
-  }
+  constructor(@Inject("EMAIL_SERVICE") private readonly emailClient: ClientProxy) {}
 
   async sendConfirmationEmail(subscription: Subscription, token: string): Promise<void> {
     const payload = {
@@ -33,10 +21,6 @@ export class ConfirmEmailService {
       },
     };
 
-    if (this.useGrpc) {
-      await this.grpcEmailClient.send(payload);
-    } else {
-      await firstValueFrom(this.http.post(`${this.baseUrl}/email/send`, payload));
-    }
+    await lastValueFrom(this.emailClient.emit("send_email", payload));
   }
 }

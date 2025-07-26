@@ -15,7 +15,7 @@ const fileFormat = format.combine(
   format.metadata({ fillExcept: ["message", "level", "timestamp", "label"] }),
   format.printf((info) => {
     const { message, timestamp, metadata } = info;
-    if (Object.keys(<Object>metadata).length > 0) {
+    if (Object.keys(<object>metadata).length > 0) {
       return `[${timestamp}] ${message} ${JSON.stringify(metadata)}`;
     }
     return `[${timestamp}] ${message}`;

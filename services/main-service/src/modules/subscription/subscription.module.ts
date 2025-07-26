@@ -22,6 +22,7 @@ import { HourlyNotificationStrategy } from "./application/services/strategies/ho
 import { HttpModule } from "@nestjs/axios";
 import { EmailModule } from "@/shared/clients/email.module";
 import { GrpcEmailModule } from "@/modules/subscription/infrastructure/grpc/grpc-email.module";
+import { ClientsModule, Transport } from "@nestjs/microservices";
 
 @Module({
   imports: [
@@ -30,6 +31,18 @@ import { GrpcEmailModule } from "@/modules/subscription/infrastructure/grpc/grpc
     HttpModule,
     EmailModule,
     GrpcEmailModule,
+
+    ClientsModule.register([
+      {
+        name: "EMAIL_SERVICE",
+        transport: Transport.RMQ,
+        options: {
+          urls: ["amqp://guest:guest@rabbitmq:5672"],
+          queue: "email_queue",
+          queueOptions: { durable: false },
+        },
+      },
+    ]),
   ],
   controllers: [SubscriptionController],
   providers: [

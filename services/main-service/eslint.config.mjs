@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import globals from "globals";
-import tseslint from "typescript-eslint";
+import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
 import { defineConfig } from "eslint/config";
 import prettierPlugin from "eslint-plugin-prettier";
 
@@ -40,21 +41,22 @@ export default defineConfig([
   {
     files: ["**/*.{ts,tsx,mts,cts}"],
     languageOptions: {
-      parser: tseslint.parser,
+      parser: tsParser,
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
-        project: true,
+        project: ["./tsconfig.json"],
+        tsconfigRootDir: process.cwd(),
       },
       globals: globals.browser,
     },
     plugins: {
-      "@typescript-eslint": tseslint.plugin,
+      "@typescript-eslint": tsPlugin,
     },
     rules: {
-      ...tseslint.configs.recommended.rules,
+      ...tsPlugin.configs.recommended.rules,
 
-      "@typescript-eslint/no-explicit-any": "warn",                // warn for any any :)
+      "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-non-null-assertion": "warn",
       "@typescript-eslint/no-inferrable-types": "error",
       "@typescript-eslint/no-unnecessary-type-assertion": "error",

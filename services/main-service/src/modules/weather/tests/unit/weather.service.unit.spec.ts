@@ -16,6 +16,7 @@ describe("WeatherService", () => {
   let service: WeatherService;
   let apiClientMock: IWeatherApiClient;
   let cacheServiceMock: WeatherCacheService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let repoMock: IWeatherRepository;
 
   beforeEach(async () => {
