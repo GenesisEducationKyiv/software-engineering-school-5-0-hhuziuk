@@ -1,0 +1,19 @@
+import { WEATHER_API_CLIENT } from "./weather-api-client.interface";
+import { HttpService } from "@nestjs/axios";
+import { WeatherApiClient } from "./weather-api-client";
+import { OpenWeatherMapApiClient } from "./openweather-api-client";
+import { WeatherLoggingProxy } from "./weather-logging-proxy";
+
+export const WeatherApiClientProvider = {
+  provide: WEATHER_API_CLIENT,
+  useFactory: (http: HttpService) => {
+    const primary = new OpenWeatherMapApiClient(http);
+    const fallback = new WeatherApiClient(http);
+
+    const fallbackWithLogger = new WeatherLoggingProxy(fallback);
+
+    primary.setNext(fallbackWithLogger);
+    return new WeatherLoggingProxy(primary);
+  },
+  inject: [HttpService],
+};
