@@ -1,12 +1,25 @@
 import { NestFactory } from "@nestjs/core";
+import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 import { AppModule } from "./app.module";
-import { config } from "./shared/configs/config";
+import { WinstonLogger } from "@/shared/logger/winston-logger.service";
+import logger, { setConsoleLogs, setFileLogs, setMetricsLogs } from "@/shared/logger/logger";
 
-async function bootstrapHttp() {
-  const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix("email");
-  await app.listen(config.port, "0.0.0.0");
-  console.log(`HTTP Email service listening on http://0.0.0.0:${config.port}/email`);
+async function bootstrap() {
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+    transport: Transport.RMQ,
+    options: {
+      urls: ["amqp://guest:guest@rabbitmq:5672"],
+      queue: "email_queue",
+      queueOptions: { durable: false },
+    },
+  });
+  app.useLogger(new WinstonLogger(logger));
+  await app.listen();
 }
 
-bootstrapHttp();
+(async () => {
+  setFileLogs(logger, "./logs");
+  setMetricsLogs(logger, "./metrics");
+  setConsoleLogs(logger);
+  await bootstrap();
+})();
