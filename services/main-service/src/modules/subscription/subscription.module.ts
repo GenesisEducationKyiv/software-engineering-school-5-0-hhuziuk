@@ -54,7 +54,6 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
       provide: SUBSCRIPTION_COMMAND_REPOSITORY,
       useClass: SubscriptionCommandRepository,
     },
-
     TokenService,
     SubscriptionFactory,
     SubscriptionManager,

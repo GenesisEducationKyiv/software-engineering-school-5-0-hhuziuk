@@ -5,6 +5,7 @@ import { SubscriptionQueryRepository } from "../../infrastructure/repositories/s
 import { WeatherService } from "../../../weather/application/services/weather.service";
 import { NotificationStrategy } from "../../application/services/interfaces/notification-strategy.interface";
 import { EmailClientService } from "@/shared/clients/email-client.service";
+import { WinstonLogger } from "@/shared/logger/winston-logger.service";
 
 jest.mock("@/shared/configs/config", () => ({
   config: {
@@ -22,6 +23,7 @@ describe("NotificationBatchSender", () => {
   let strategyResolver: jest.Mocked<NotificationStrategyResolver>;
   let strategyMock: jest.Mocked<NotificationStrategy>;
   let emailClient: jest.Mocked<EmailClientService>;
+  let logger: jest.Mocked<WinstonLogger>;
 
   beforeEach(() => {
     weatherService = {
@@ -36,6 +38,14 @@ describe("NotificationBatchSender", () => {
       findConfirmedByFrequency: jest.fn(),
     } as any;
 
+    logger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      verbose: jest.fn(),
+    } as unknown as jest.Mocked<WinstonLogger>;
+
     strategyResolver = {
       get: jest.fn(),
     } as any;
@@ -47,7 +57,13 @@ describe("NotificationBatchSender", () => {
       getTemplate: jest.fn().mockReturnValue("template-name"),
     } as any;
 
-    sender = new NotificationBatchSender(weatherService, emailClient, strategyResolver, queryRepo);
+    sender = new NotificationBatchSender(
+      weatherService,
+      emailClient,
+      strategyResolver,
+      queryRepo,
+      logger,
+    );
   });
 
   afterEach(() => {

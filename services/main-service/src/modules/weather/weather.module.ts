@@ -10,7 +10,7 @@ import { WeatherCacheService } from "./application/services/weather-cache.servic
 import { WeatherApiClientProvider } from "./infrastructure/clients";
 import { RedisService } from "./infrastructure/redis/redis.service";
 import Redis from "ioredis";
-import { config } from "../../shared/configs/config";
+import { config } from "@/shared/configs/config";
 import { MetricsService } from "./infrastructure/metrics/metrics.service";
 import {
   REDIS_CLIENT,
