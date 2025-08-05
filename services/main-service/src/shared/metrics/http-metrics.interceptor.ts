@@ -16,10 +16,8 @@ interface HttpResponse {
 @Injectable()
 export class HttpMetricsInterceptor implements NestInterceptor {
   constructor(
-    @InjectMetric("http_request_count")
+    @InjectMetric("http_requests_total")
     private readonly counter: Counter<string>,
-    @InjectMetric("http_request_errors_total")
-    private readonly errorCounter: Counter<string>,
     @InjectMetric("http_request_duration_seconds")
     private readonly histogram: Histogram<string>,
   ) {}
@@ -31,12 +29,13 @@ export class HttpMetricsInterceptor implements NestInterceptor {
     const route = req.route?.path ?? req.url;
     const method = req.method;
 
-    const endTimer = this.histogram.startTimer({ method, path: route });
-    this.counter.inc({ method, path: route });
+    const labels = { method, path: route };
+    const endTimer = this.histogram.startTimer(labels);
 
     return next.handle().pipe(
       tap(() => {
         const status = String(res.statusCode);
+        this.counter.inc({ ...labels, status });
         endTimer({ status });
       }),
       catchError((err: unknown) => {
@@ -44,7 +43,8 @@ export class HttpMetricsInterceptor implements NestInterceptor {
           typeof err === "object" && err !== null && "status" in err
             ? String((err as { status: number }).status)
             : "500";
-        this.errorCounter.inc({ method, path: route, status });
+
+        this.counter.inc({ ...labels, status });
         endTimer({ status });
         return throwError(() => err);
       }),

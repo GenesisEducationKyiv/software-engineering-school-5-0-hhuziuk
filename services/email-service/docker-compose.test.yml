@@ -1,0 +1,19 @@
+services:
+  rabbitmq-test:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-test
+    ports:
+      - '5673:5672'
+      - '15673:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmqctl status"]
+      interval: 5s
+      retries: 5
+    volumes:
+      - rabbitmq-test-data:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq-test-data:

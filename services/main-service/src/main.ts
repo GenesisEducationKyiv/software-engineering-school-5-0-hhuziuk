@@ -3,7 +3,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import { config } from "./shared/configs/config";
-import logger, { setConsoleLogs, setFileLogs, setMetricsLogs } from "./shared/logger/logger";
+import logger, { setConsoleLogs, setFileLogs } from "./shared/logger/logger";
 import { WinstonLogger } from "./shared/logger/winston-logger.service";
 import { collectDefaultMetrics } from "prom-client";
 
@@ -22,7 +22,6 @@ async function bootstrap() {
 
 (async () => {
   setFileLogs(logger, "./logs");
-  setMetricsLogs(logger, "./metrics");
   setConsoleLogs(logger);
   await bootstrap();
 })();
