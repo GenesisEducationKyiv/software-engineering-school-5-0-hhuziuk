@@ -23,6 +23,7 @@ import { HttpModule } from "@nestjs/axios";
 import { EmailModule } from "@/shared/clients/email.module";
 import { GrpcEmailModule } from "@/modules/subscription/infrastructure/grpc/grpc-email.module";
 import { ClientsModule, Transport } from "@nestjs/microservices";
+import { WinstonLogger } from "@/shared/logger/winston-logger.service";
 
 @Module({
   imports: [
@@ -54,12 +55,12 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
       provide: SUBSCRIPTION_COMMAND_REPOSITORY,
       useClass: SubscriptionCommandRepository,
     },
-
     TokenService,
     SubscriptionFactory,
     SubscriptionManager,
     SubscriptionService,
     ConfirmEmailService,
+    WinstonLogger,
 
     DailyNotificationStrategy,
     HourlyNotificationStrategy,

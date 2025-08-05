@@ -12,6 +12,7 @@ import { TokenService } from "../../application/services/token.service";
 import { SubscriptionManager } from "../../application/services/subscription-manager.service";
 import { NotificationService } from "../../application/services/notification.service";
 import { ConfirmEmailService } from "../../application/services/confirm-email.service";
+import { WinstonLogger } from "@/shared/logger/winston-logger.service";
 
 jest.mock("../../../../shared/configs/config", () => ({
   config: {
@@ -79,6 +80,14 @@ describe("SubscriptionService", () => {
       sendConfirmationEmail: jest.fn(),
     } as any;
 
+    const mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubscriptionService,
@@ -89,6 +98,7 @@ describe("SubscriptionService", () => {
         { provide: SubscriptionManager, useValue: subscriptionManagerMock },
         { provide: NotificationService, useValue: notificationServiceMock },
         { provide: ConfirmEmailService, useValue: confirmEmailServiceMock },
+        { provide: WinstonLogger, useValue: mockLogger },
       ],
     }).compile();
 

@@ -5,11 +5,7 @@ import { RED_METRICS_PROVIDERS } from "@/shared/metrics/red-metrics.providers";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 
 @Module({
-  imports: [
-    PrometheusModule.register({
-      defaultMetrics: { enabled: false },
-    }),
-  ],
+  imports: [PrometheusModule.register()],
   providers: [
     ...RED_METRICS_PROVIDERS,
     {

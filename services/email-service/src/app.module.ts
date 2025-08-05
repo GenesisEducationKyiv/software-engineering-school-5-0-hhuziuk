@@ -3,6 +3,9 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
 import { config } from "./shared/configs/config";
 import { EmailModule } from "./modules/email/email.module";
+import { MetricsModule } from "@/shared/metrics/metrics.module";
+import { WinstonLogger } from "@/shared/logger/winston-logger.service";
+import { LoggerModule } from "@/shared/logger/logger.module";
 
 @Module({
   imports: [
@@ -24,6 +27,12 @@ import { EmailModule } from "./modules/email/email.module";
       },
     }),
     EmailModule,
+    MetricsModule,
+    LoggerModule.forRoot({
+      log: 0.3,
+      debug: 0.15,
+      verbose: 0.02,
+    }),
   ],
 })
 export class AppModule {}

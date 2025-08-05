@@ -15,6 +15,7 @@ import { SubscriptionService } from "../../application/services/subscription.ser
 import { NotificationService } from "../../application/services/notification.service";
 import { ConfirmEmailService } from "../../application/services/confirm-email.service";
 import { MailerModule } from "@nestjs-modules/mailer";
+import { WinstonLogger } from "@/shared/logger/winston-logger.service";
 
 dotenv.config({ path: ".env.test" });
 
@@ -31,6 +32,14 @@ describe("SubscriptionController Integration", () => {
   };
   let mockNotificationService: {
     sendBatch: jest.Mock;
+  };
+
+  const mockLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
   };
 
   beforeAll(async () => {
@@ -61,6 +70,7 @@ describe("SubscriptionController Integration", () => {
         }),
         SubscriptionModule,
       ],
+      providers: [{ provide: WinstonLogger, useValue: mockLogger }],
     })
       .overrideProvider(SubscriptionService)
       .useValue(mockSubscriptionService)
@@ -76,8 +86,11 @@ describe("SubscriptionController Integration", () => {
   });
 
   afterAll(async () => {
-    if (ds && ds.isInitialized) {
+    if (ds?.isInitialized) {
       await ds.destroy();
+    }
+    if (moduleRef?.close) {
+      await moduleRef.close();
     }
   });
 
